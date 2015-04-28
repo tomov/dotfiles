@@ -166,7 +166,8 @@ set cursorline
  set laststatus=2
 
 " show name of function being edited
+let Tlist_Process_File_Always=1
 set statusline=%<%f%=%([%{Tlist_Get_Tagname_By_Line()}]%)
 set statusline+=\ %l/%L   "cursor line/total lines
 set statusline+=\ %P    "percent through file
-
+nnoremap <C-t> :TlistToggle<CR>
