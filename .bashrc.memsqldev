@@ -111,6 +111,7 @@ export LD_LIBRARY_PATH=$PATH_TO_MEMSQL/objdir/usr/local/lib64:/home/$USER/llvm/l
 export PYTHONPATH=$PATH_TO_MEMSQL/py:$PYTHONPATH
 export PATH=~/arcanist/bin:~/psyduck/bin:$PATH_TO_MEMSQL/utils/private:$PATH
 alias memsql='mysql -h 127.0.0.1 -u root --prompt="memsql> "'
+alias mem='mysql -h 127.0.0.1 -u root --prompt="memsql> "'
 alias my='mysql -h 127.0.0.1 --socket=/var/run/mysqld/mysqld.sock -u root --port 3307'
 alias single='cgdb --args ./memsqld'
 alias distributed='cgdb --args ./memsqld --master-aggregator --default-partitions-per-leaf=3 --transaction-buffer=1m'
@@ -125,5 +126,25 @@ alias mrp='$PATH_TO_MEMSQL/utils/private/mrp'
 alias gitgraph='git log --graph --full-history --all --color --pretty=format:"%x1b[31m%h%x09%x1b[32m%d%x1b[0m%x20%s"'
 alias cmretail='find . -name "CMakeCache.txt" | xargs rm -f && cmake . -DCMAKE_EXPORT_COMPILE_COMMANDS=ON'
 
+alias remake='/home/vagrant/memsql/remake.sh'
+alias rerun='/home/vagrant/memsql/rerun.sh'
+alias m='/home/vagrant/memsql/makeplace.sh'
+
 export PATH=/home/vagrant/tmux:$PATH
 export TERM="xterm-256color"
+
+unset LD_LIBRARY_PATH
+
+export PATH=/home/vagrant/NO_NAME/downloads/q/l32:$PATH
+export QHOME=/home/vagrant/NO_NAME/downloads/q
+
+# for sphinx
+export PATH="$HOME/.linuxbrew/bin:$PATH"
+export MANPATH="$HOME/.linuxbrew/share/man:$MANPATH"
+export INFOPATH="$HOME/.linuxbrew/share/info:$INFOPATH"
+
+### Added by the Heroku Toolbelt
+export PATH="/usr/local/heroku/bin:$PATH"
+
+export VISUAL=vim
+export EDITOR="$VISUAL"
