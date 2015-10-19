@@ -1,0 +1,165 @@
+#!/bin/bash
+
+usage_message="$0 [-s] [-l log] [-p pid_file] [-P port] ..."
+
+owned=
+exe_dir="$( cd "$( dirname $( realpath "${BASH_SOURCE[0]}" ) )" && pwd )"
+
+usage () {
+    echo "$usage_message"
+    exit 1
+}
+
+parse_opt () {
+    long=$1
+    short=$2
+    opt=$3
+    next=$4
+    ret=0
+
+    var=$(echo "$long" | sed -e 's/[^-a-zA-Z_0-9]//g' -e 's/-/_/g')
+    val=
+
+    if [ "$opt" != "--${!long}" ]; then
+        val=$(echo "$opt" | sed -r "s/(-$short|--$long=)//")
+    fi
+    if [ -z "$val" ]; then
+        val=$next
+        ret=1
+    fi
+
+    eval "$var=\"$val\""
+    return $ret
+}
+
+term=
+pid_file=
+log=
+sudo=
+port=
+while (( "$#" )); do
+    case $1 in
+        -t*|--term=*|--term)
+            if ! parse_opt term t $@; then
+                shift
+            fi
+            ;;
+        -l*|--log=*|--log)
+            if ! parse_opt log l $@; then
+                shift
+            fi
+            ;;
+        -p*|--pid-file=*|--pid-file)
+            if ! parse_opt pid-file p $@; then
+                shift
+            fi
+            ;;
+        -P*|--port=*|--port)
+            if ! parse_opt port P $@; then
+                shift
+            fi
+            sudo="yes"
+            ;;
+        -s)
+            sudo="yes"
+            ;;
+        --)
+            shift
+            break ;;
+        *)
+            break ;;
+    esac
+    shift
+done
+
+declare -a params=( "$@" )
+
+if [ -n "$port" ]; then
+    pid=$(fuser $port/tcp 2>/dev/null)
+    if [ -z "$pid" ]; then
+        echo "No process on port $port" 1>&2
+        exit 1
+    fi
+    params+=( "-p" "$pid" )
+fi
+
+if (( ! "${#params[@]}" )); then usage; fi
+
+# Returns in $owned and $pts
+#
+launch () {
+    declare pid=
+    declare parent=
+
+    if [ -n "$term" ]; then
+        parent=$($exe_dir/daemon $term -e "$@")
+        while [ -z "$pid" ]; do pid=$(pgrep -P $parent); done
+        owned="$owned $parent"
+        pts="/dev/$(ps -o tty= --pid=$pid)"
+    else
+        declare this_tty=
+        declare this_pane=
+        declare new_pane=
+        declare cmd=
+
+        this_tty=$(ps -o tty= --pid $$)
+        this_pane=$(tmux list-panes -F '#{pane_tty} #{pane_id}' | grep "$this_tty" | awk '{ print $2 }')
+        tmux select-pane -t $this_pane
+        cmd=
+        for arg in "$@"; do
+            cmd="$cmd \"$arg\""
+        done
+        if [ -z "$horizontal" ]; then
+            tmux split-window -p 30 "$cmd"
+            tmux swap-pane -s $this_pane
+        else
+            tmux split-window -h -p 30 "$cmd"
+            tmux swap-pane -s $this_pane
+        fi
+        new_pane=$(tmux list-panes -F '#{?pane_active,active,} #{pane_pid} #{pane_tty} #{pane_id}' | grep active | awk '{ print $2, $3 }')
+        owned="$owned $(echo $new_pane | awk '{ print $1 }')"
+        pts=$(echo $new_pane | awk '{ print $2 }')
+    fi
+}
+
+current_pane=$(tmux list-panes -F '#{?pane_active,active,} #{pane_id}' | grep active | awk '{ print $2 }')
+
+if [ -z "$EXTERMINATOR_FILE" ]; then
+    export EXTERMINATOR_FILE=$(mktemp)
+    horizontal=1 launch vim -c "let g:session_autoload='no'" -c "let g:exterminator_file='$EXTERMINATOR_FILE'"
+fi
+
+export VIM_TMUX_PANE=$(tmux list-panes -F '#{?pane_active,active,} #{pane_id}' | grep active | awk '{ print $2 }')
+
+launch $exe_dir/signal-passer $$
+
+if [ -n "$log" ]; then
+    cat $log > $pts
+else
+    echo Debugging in $(pwd): $@ > $pts
+    echo > $pts
+fi
+
+tmux select-pane -t $current_pane
+
+gdb_file=$(mktemp)
+echo "tty $pts" >> $gdb_file
+if [ -n "$pid_file" ]; then
+    echo "define hookpost-run" >> $gdb_file
+    echo "echo running" >> $gdb_file
+    echo "python open('$pid_file', 'w').write(str(gdb.selected_inferior().pid))" >> $gdb_file
+    echo "end" >> $gdb_file
+fi
+
+clear
+if [ -z "$sudo" ]; then
+    gdb -x $exe_dir/exterminator.py -x $gdb_file "${params[@]}"
+else
+    sudo -E gdb -x $exe_dir/exterminator.py -x $gdb_file "${params[@]}"
+fi
+
+kill $owned 2>/dev/null
+
+rm $EXTERMINATOR_FILE
+rm $gdb_file
+
