@@ -1,4 +1,4 @@
-# If not running interactively, don't do anything
+#i f not running interactively, don't do anything
 [ -z "$PS1" ] && return
 
 # don't put duplicate lines or lines starting with space in the history.
@@ -100,8 +100,8 @@ if [ -f /etc/bash_completion ] && ! shopt -oq posix; then
     . /etc/bash_completion
 fi
 
-bind '"\e[A": history-search-backward'
-bind '"\e[B": history-search-forward'
+#bind '"\e[A": history-search-backward'
+#bind '"\e[B": history-search-forward'
 
 export PATH_TO_MEMSQL="/home/$USER/memsql"
 export CXX="ccache $PATH_TO_MEMSQL/objdir/usr/local/bin/memsql-g++  \
@@ -129,6 +129,7 @@ alias cmretail='find . -name "CMakeCache.txt" | xargs rm -f && cmake . -DCMAKE_E
 alias remake='/home/vagrant/memsql/remake.sh'
 alias rerun='/home/vagrant/memsql/rerun.sh'
 alias m='/home/vagrant/memsql/makeplace.sh'
+alias clean="rm -rf $PATH_TO_MEMSQL/plancache/*; rm -rf $PATH_TO_MEMSQL/data/snapshots/*; rm -rf $PATH_TO_MEMSQL/data/logs/*; rm -rf $PATH_TO_MEMSQL/data/columns/* ; rm $PATH_TO_MEMSQL/tracelogs/memsql.log"
 
 export PATH=/home/vagrant/tmux:$PATH
 export TERM="xterm-256color"
@@ -148,3 +149,7 @@ export PATH="/usr/local/heroku/bin:$PATH"
 
 export VISUAL=vim
 export EDITOR="$VISUAL"
+
+export AWS_ACCESS_KEY=AKIAILRXJADXIGZMTKQA
+export AWS_SECRET_KEY=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
+
