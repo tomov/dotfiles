@@ -44,6 +44,7 @@ Bundle 'altercation/vim-colors-solarized'
 Bundle 'christoomey/vim-tmux-navigator'
 Bundle 'ervandew/supertab'
 Bundle 'tpope/vim-fugitive'
+Bundle 'tpope/vim-obsession'
 Bundle '907th/vim-auto-save'
 
 let g:auto_save = 1 " enable AutoSave 
@@ -54,6 +55,7 @@ cmap vsplit vs
 noremap t j
 noremap n k
 noremap s l
+noremap <Del> d
 
 " next search, b/c remapped n above
 noremap j n
