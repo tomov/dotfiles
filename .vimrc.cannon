@@ -1,0 +1,64 @@
+syntax on
+set number
+set cindent
+set autoindent
+
+set tabstop=4
+set shiftwidth=4
+set softtabstop=4
+set expandtab
+
+set laststatus=2
+set statusline=%t       "tail of the filename
+"set statusline+=[%{strlen(&fenc)?&fenc:'none'}, "file encoding
+"set statusline+=%{&ff}] "file format
+set statusline+=%h      "help file flag
+set statusline+=%m      "modified flag
+set statusline+=%r      "read only flag
+"set statusline+=%y      "filetype
+set statusline+=%=      "left/right separator
+set statusline+=%c,     "cursor column
+set statusline+=%l/%L   "cursor line/total lines
+set statusline+=\ %P    "percent through file
+
+set ruler
+
+set nocompatible
+filetype plugin indent on
+
+set incsearch
+set hlsearch
+set t_Co=256
+
+set nocompatible
+filetype off
+
+set rtp+=~/.vim/bundle/vundle/
+call vundle#begin()
+
+Plugin 'gmarik/vundle'
+
+
+Plugin 'altercation/vim-colors-solarized'
+Plugin 'christoomey/vim-tmux-navigator'
+Plugin 'ervandew/supertab'
+Plugin 'tpope/vim-fugitive'
+Plugin 'tpope/vim-obsession'
+Plugin '907th/vim-auto-save'
+
+
+call vundle#end()
+filetype plugin indent on
+
+let g:auto_save = 1 " enable AutoSave
+
+cmap vsplit vs
+
+" arrow keys
+noremap t j
+noremap n k
+noremap s l
+noremap <Del> d
+
+" next search, b/c remapped n above
+noremap j n
